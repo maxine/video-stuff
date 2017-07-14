@@ -8,37 +8,65 @@ test = parser.read('video-data.ini')
 
 holdVideo = None
 finalVideo = None
+
+holdText = None
+finalText = None
+
+textList = [i for i in range(len(parser.sections()))]
 def writeClips():
+	global holdVideo
+	global finalVideo
+	global holdText
+	global finalText
+
+	i = 0
 	for m in parser.sections():
 		text = parser.get(m, 'clip_text')
+		#print(type(text))
 		media = parser.get(m, 'media_link')
+		#print(type(media))
 		fSize = parser.getint(m, 'font_size')
+		#print(type(fSize))
 		fColor = parser.get(m, 'font_color')
+		#print(type(fColor))
 		textSpot = parser.get(m, 'text_location')
+		#print(type(textSpot))
 		clipStart = parser.getint(m, 'start_time')
+		#print(type(clipStart))
 		clipEnd = parser.getint(m, 'end_time')
-		duration = clipStart - clipEnd
+		#print(type(clipEnd))
+		duration = clipEnd - clipStart
+		#print(type(duration))
 
-		global holdVideo
-		global finalVideo
 
-		clip = VideoFileClip(media).subclip(clipStart, clipEnd)
-		txt_clip = TextClip(text,fontsize=fSize,color=fColor)
+		txt_clip = TextClip(text,fontsize=fSize,color=fColor, size=(1280, 720))
 		txt_clip = txt_clip.set_pos(textSpot).set_duration(10)
-		videoClip = CompositeVideoClip([clip, txt_clip])
+		textList[i] = txt_clip
+		i += 1
+	textList[0].write_videofile("textonly.mp4", fps=12, codec='libx264')
 
-		if holdVideo == None:
-			holdVideo = videoClip
-			finalVideo = videoClip
-			videoClip = None
-			#holdVideo.write_videofile("yeahtest.mp4")
-		else:
-			holdVideo = finalVideo
-			finalVideo = concatenate_videoclips(holdVideo, videoClip)
-			finalVideo.write_videofile("yeahtest1.mp4")
-			videoClip = None
+
+		#if holdText == None:
+		#	holdText = txt_clip
+		#	finalText = txt_clip
+		#	txt_clip = None
+		#else:
+		#	holdText = finalText
+		#	finalText = concatenate_videoclips(holdText, txt_clip)
+		#print(finalText)
+
+		#videoClip = VideoFileClip(media).subclip(clipStart, clipEnd)
+		#if holdVideo == None:
+			#holdVideo = videoClip
+			#finalVideo = videoClip
+			#videoClip = None
+			##holdVideo.write_videofile("yeahtest.mp4")
+		#else:
+			#holdVideo = finalVideo
+			#finalVideo = concatenate_videoclips(holdVideo, videoClip)
 		
-	#holdVideo.write_videofile("yeahtest.mp4")
+	#video = CompositeVideoClip([finalVideo, finalText])
+	#video.write_videofile("yeahtest.mp4")
 		
 writeClips()
 
