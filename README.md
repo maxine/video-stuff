@@ -1,6 +1,6 @@
-#Video Stuff
+# Video Stuff
 
-##Example
+## Example
 To make an example video:
 1. Downlaod this repository
 2. Install dependencies: `pip install requirements.txt`
@@ -12,7 +12,7 @@ If you'd like to add your own twist on a video, head into the example-data.ini f
 
 Example music courtesy of [bensound.com](http://www.bensound.com)
 
-##Maintainers
-@adebruine
-@jbirori
-@maxinewhitely
+## Maintainers
+[@adebruine](https://github.com/adebruine)
+[@jbirori](https://github.com/jbirori)
+[@maxinewhitely](https://github.com/maxinewhitely)
