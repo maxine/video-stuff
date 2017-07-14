@@ -13,6 +13,7 @@ holdText = None
 finalText = None
 
 textList = [i for i in range(len(parser.sections()))]
+videoList = [i for i in range(len(parser.sections()))]
 def writeClips():
 	global holdVideo
 	global finalVideo
@@ -20,6 +21,7 @@ def writeClips():
 	global finalText
 
 	i = 0
+	j = 0
 	for m in parser.sections():
 		text = parser.get(m, 'clip_text')
 		#print(type(text))
@@ -43,7 +45,17 @@ def writeClips():
 		txt_clip = txt_clip.set_pos(textSpot).set_duration(10)
 		textList[i] = txt_clip
 		i += 1
-	textList[0].write_videofile("textonly.mp4", fps=12, codec='libx264')
+
+		vid_clip = VideoFileClip(media).subclip(clipStart, clipEnd)
+		videoList[j] = vid_clip
+		j += 1
+
+	
+	textVid = concatenate_videoclips([textList[0], textList[1]])
+	videoVid = concatenate_videoclips([videoList[0], videoList[1]])
+
+	video = CompositeVideoClip([videoVid, textVid])
+	video.write_videofile("textonly.mp4", fps=12, codec='libx264')
 
 
 		#if holdText == None:
