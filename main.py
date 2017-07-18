@@ -1,8 +1,6 @@
 # Import requirements
 from moviepy.editor import *
 from ConfigParser import SafeConfigParser
-#from moviepy.video.fx.scroll import fadein
-#from moviepy.video.fx.scroll import fadeout
 
 #Read configuration file
 parser = SafeConfigParser()
@@ -13,17 +11,6 @@ parser.read('example-data.ini')
 txt_clip_list = [i for i in range(len(parser.sections()))]
 med_clip_list = [i for i in range(len(parser.sections()))]
 
-#Finds length of all inputted media to determine global audio track duration
-audio_duration = 0
-def audioLength():
-	global audio_duration
-	audioBegin = 0
-	audioEnd = 0	
-	for m in parser.sections():
-		audioBegin += parser.getint(m, 'start_time')
-		audioEnd += parser.getint(m, 'end_time')
-		audio_duration = audioEnd - audioBegin
-	return audio_duration
 
 #Defines text size based on video aspect ratio
 tScale = "size"

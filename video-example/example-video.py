@@ -1,8 +1,6 @@
 # Import requirements
 from moviepy.editor import *
 from ConfigParser import SafeConfigParser
-#from moviepy.video.fx.scroll import fadein
-#from moviepy.video.fx.scroll import fadeout
 
 #Read configuration file
 parser = SafeConfigParser()
