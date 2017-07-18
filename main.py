@@ -6,11 +6,17 @@ from ConfigParser import SafeConfigParser
 parser = SafeConfigParser()
 parser.read('video-data.ini')
 
+text_parser = SafeConfigParser()
+text_parser.read('fonts.ini')
+
 #GLOBAL VARIABLES 
 #Lists to hold text and video sub-clips
 txt_clip_list = [i for i in range(len(parser.sections()))]
 med_clip_list = [i for i in range(len(parser.sections()))]
 
+
+#Assigns user-specified font to a variable
+user_font = "Comic Sans" #currently hard coded; this is where we read in user input 
 
 #Defines text size based on video aspect ratio
 def textSize():
@@ -36,6 +42,7 @@ def scaleFonts():
 	return tSize
 
 #Finds length of all inputted media to determine global audio track duration
+
 def audioLength():
 	audioBegin = 0
 	audioEnd = 0
@@ -78,6 +85,10 @@ def compileVideo():
 	tHighlight = parser.get('video0', 'text_highlight_color')
 	tSize = parser.getint('video0', 'text_size')
 	tBackground = parser.get('video0', 'text_background')
+
+
+	tFont = text_parser.get(user_font, 'text_font')
+
 	#Audio
 	global_audio = parser.get('video0', 'video_audio')
 	audio_bool = parser.getboolean('video0', 'audio_setting')
@@ -98,8 +109,8 @@ def compileVideo():
 		text_duration = clip_end - clip_start
 
 		#Make the text asset for each video in the config file
-		txt_clip = TextClip(text, fontsize=tSize,color=tColor)
-		txt_clip = txt_clip.set_position((20, 80)).set_duration(text_duration).fadein(.35).fadeout(.35)
+		txt_clip = TextClip(text, font=tFont, fontsize=tSize, color=tColor)
+		txt_clip = txt_clip.set_duration(text_duration).fadein(.35).fadeout(.35)
 		txt_clip_list[i] = txt_clip
 		i += 1
 
@@ -109,7 +120,7 @@ def compileVideo():
 		j += 1
 
 	#Put together individual text/video clips into one successive text or video clip
-	text_vid = concatenate_videoclips(txt_clip_list)
+	text_vid = concatenate_videoclips(txt_clip_list).set_position(("center","top"))
 	media_vid = concatenate_videoclips(med_clip_list)
 	audioclip = AudioFileClip(global_audio).set_duration(audio_length)
 
