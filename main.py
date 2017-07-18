@@ -9,7 +9,6 @@ parser.read('video-data.ini')
 text_parser = SafeConfigParser()
 text_parser.read('fonts.ini')
 
-
 #GLOBAL VARIABLES 
 #Lists to hold text and video sub-clips
 txt_clip_list = [i for i in range(len(parser.sections()))]
@@ -20,12 +19,11 @@ med_clip_list = [i for i in range(len(parser.sections()))]
 user_font = "Comic Sans" #currently hard coded; this is where we read in user input 
 
 #Defines text size based on video aspect ratio
-tScale = "size"
 def textSize():
-	global tScale
+	tScale = "size"
 	aspect_ratio = parser.get('video0', 'aspect_ratio')
 
-	if aspect_ratio == "4:3":
+	if aspect_ratio == "1.3:1":
 		tScale = "medium"
 	if aspect_ratio == "16:9":
 		tScale = "large"
@@ -33,10 +31,8 @@ def textSize():
 		tScale = "small"
 	return tScale
 
-tSize = 0
-def fontScale():
-	global tSize
-
+def scaleFonts():
+	tSize = 0
 	if tScale == "small":
 		pass
 	if tScale == "medium":
@@ -45,18 +41,36 @@ def fontScale():
 		pass
 	return tSize
 
-#aspect_ratio
+#Finds length of all inputted media to determine global audio track duration
 
-audio_duration = 0
 def audioLength():
-	global audio_duration
 	audioBegin = 0
-	audioEnd = 0	
+	audioEnd = 0
+	audio_duration = 0
 	for m in parser.sections():
 		audioBegin += parser.getint(m, 'start_time')
 		audioEnd += parser.getint(m, 'end_time')
-		audio_duration = audioEnd - audioBegin
+	audio_duration = (audioEnd - audioBegin)
 	return audio_duration
+
+def sizeVideo():
+	aspect_ratio = parser.get('video0', 'aspect_ratio')
+	sizeX = 0
+	sizeY = 0
+
+	#if aspect_ratio == "1.3:1":
+		#sizeX = 
+		#sizeY = 
+	#if aspect_ratio == "16:9":
+		#sizeX = 1080
+		#sizeY = 720
+	#if aspect_ratio == "1:1":
+		#sizeX = 1280
+		#sizeY = 1280
+	#if aspect_ratio == "4:5":
+	#	sizeX = 864
+	#	sizeY = 1080
+	#return (sizeX, sizeY)
 
 
 #Makes individual text, media, and audio clips and then stitches them into one video
@@ -108,11 +122,10 @@ def compileVideo():
 	#Put together individual text/video clips into one successive text or video clip
 	text_vid = concatenate_videoclips(txt_clip_list).set_position(("center","top"))
 	media_vid = concatenate_videoclips(med_clip_list)
-	audioclip = AudioFileClip(global_audio).set_duration(audio_length, change_end=True)
+	audioclip = AudioFileClip(global_audio).set_duration(audio_length)
 
 	#Overlay concatenated text clip onto concatenated video clip and output the final video
-	video = CompositeVideoClip([media_vid, text_vid])
-	video = video.set_audio(audioclip)
-	video.write_videofile("knight_lab.mp4", fps=vid_fps, codec=vid_codec, audio=audio_bool)
+	video = CompositeVideoClip([media_vid, text_vid]).set_audio(audioclip)
+	video.write_videofile(file_name, fps=vid_fps, codec=vid_codec)
 
 compileVideo()
