@@ -25,6 +25,34 @@ def audioLength():
 		audio_duration = audioEnd - audioBegin
 	return audio_duration
 
+#Defines text size based on video aspect ratio
+tScale = "size"
+def textSize():
+	global tScale
+	aspect_ratio = parser.get('video0', 'aspect_ratio')
+
+	if aspect_ratio == "4:3":
+		tScale = "medium"
+	if aspect_ratio == "16:9":
+		tScale = "large"
+	if aspect_ratio == "1:1":
+		tScale = "small"
+	return tScale
+
+tSize = 0
+def fontScale():
+	global tSize
+
+	if tScale == "small":
+		pass
+	if tScale == "medium":
+		pass
+	if tScale == "large":
+		pass
+	return tSize
+
+
+
 #Makes individual text, media, and audio clips and then stitches them into one video
 def compileVideo():
 	#Global list indexers for inside the for loop
@@ -42,6 +70,7 @@ def compileVideo():
 	audio_bool = parser.getboolean('video0', 'audio_setting')
 	audio_length = audioLength()
 	#File
+	aspect_ratio = 
 	vid_fps = parser.getint('video0', 'frames_per_second')
 	vid_codec = parser.get('video0', 'video_codec')
 	file_name = parser.get('video0', 'save_as')
@@ -77,4 +106,4 @@ def compileVideo():
 	video = video.set_audio(audioclip)
 	video.write_videofile("knight_lab.mp4", fps=vid_fps, codec=vid_codec, audio=audio_bool)
 
-compileVideo()
+#writeClips()
