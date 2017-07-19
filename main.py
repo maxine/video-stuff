@@ -108,24 +108,28 @@ def compileVideo():
 		clip_end = parser.getint(m, 'end_time')
 		text_duration = clip_end - clip_start
 
-		#Make the text asset for each video in the config file
+		#Make the text asset for clip m in the config file
 		txt_clip = TextClip(text, font=tFont, fontsize=tSize, color=tColor)
-		txt_clip = txt_clip.set_duration(text_duration).fadein(.35).fadeout(.35)
-		txt_clip_list[i] = txt_clip
+		txt_clip = txt_clip.set_duration(text_duration).fadein(.35).fadeout(.35).set_position(("center","top"))		
+
+		#Make the video asset for slide m in the config file
+		med_clip = VideoFileClip(media).subclip(clip_start, clip_end).fadein(.35).fadeout(.35)
+
+		#compose text and video to create clip m
+		video_clip = CompositeVideoClip([med_clip, txt_clip])
+		#add completed clip to list of clips
+		med_clip_list[i] = video_clip
+		#index for clip list
 		i += 1
 
-		#Make the video asset for each video in the config file
-		med_clip = VideoFileClip(media).subclip(clip_start, clip_end).fadein(.35).fadeout(.35)
-		med_clip_list[j] = med_clip
-		j += 1
+	#concatenate all completed clips
+	video = concatenate_videoclips(med_clip_list)
 
-	#Put together individual text/video clips into one successive text or video clip
-	text_vid = concatenate_videoclips(txt_clip_list).set_position(("center","top"))
-	media_vid = concatenate_videoclips(med_clip_list)
-	audioclip = AudioFileClip(global_audio).set_duration(audio_length)
+	#Set audio for entire video
+	audioclip = AudioFileClip(global_audio)#.set_duration(audio_length, change_end=True)
+	video2 = video.set_audio(audioclip)
+	#write out final video 
+	video2.write_videofile("knight_lab.mp4", fps=vid_fps, codec=vid_codec, audio=audio_bool)
 
-	#Overlay concatenated text clip onto concatenated video clip and output the final video
-	video = CompositeVideoClip([media_vid, text_vid]).set_audio(audioclip)
-	video.write_videofile(file_name, fps=vid_fps, codec=vid_codec)
 
 compileVideo()
