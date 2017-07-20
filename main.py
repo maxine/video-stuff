@@ -2,18 +2,16 @@
 from moviepy.editor import *
 from ConfigParser import SafeConfigParser
 
-#Read configuration file
+#Read configuration files
 parser = SafeConfigParser()
 parser.read('video-data.ini')
-
 text_parser = SafeConfigParser()
 text_parser.read('fonts.ini')
 
 #GLOBAL VARIABLES 
 #Lists to hold text and video sub-clips
-txt_clip_list = [i for i in range(len(parser.sections()))]
+#txt_clip_list = [i for i in range(len(parser.sections()))]
 med_clip_list = [i for i in range(len(parser.sections()))]
-
 
 #Assigns user-specified font to a variable
 user_font = "Comic Sans" #currently hard coded; this is where we read in user input 
@@ -42,7 +40,6 @@ def scaleFonts():
 	return tSize
 
 #Finds length of all inputted media to determine global audio track duration
-
 def audioLength():
 	audioBegin = 0
 	audioEnd = 0
@@ -57,7 +54,6 @@ def sizeVideo():
 	aspect_ratio = parser.get('video0', 'aspect_ratio')
 	sizeX = 0
 	sizeY = 0
-
 	#if aspect_ratio == "1.3:1":
 		#sizeX = 
 		#sizeY = 
@@ -77,7 +73,7 @@ def sizeVideo():
 def compileVideo():
 	#Global list indexers for inside the for loop
 	i = 0
-	j = 0
+	#j = 0
 
 	#CONSTANT VARIABLES - values that apply to the entire video
 	#Text
@@ -85,10 +81,7 @@ def compileVideo():
 	tHighlight = parser.get('video0', 'text_highlight_color')
 	tSize = parser.getint('video0', 'text_size')
 	tBackground = parser.get('video0', 'text_background')
-
-
 	tFont = text_parser.get(user_font, 'text_font')
-
 	#Audio
 	global_audio = parser.get('video0', 'video_audio')
 	audio_bool = parser.getboolean('video0', 'audio_setting')
@@ -110,26 +103,24 @@ def compileVideo():
 
 		#Make the text asset for clip m in the config file
 		txt_clip = TextClip(text, font=tFont, fontsize=tSize, color=tColor)
-		txt_clip = txt_clip.set_duration(text_duration).fadein(.35).fadeout(.35).set_position(("center","top"))		
+		txt_clip = txt_clip.set_duration(text_duration).fadein(.35).fadeout(.35).set_position((tAlign,tPlace))		
 
 		#Make the video asset for slide m in the config file
-		med_clip = VideoFileClip(media).subclip(clip_start, clip_end).fadein(.35).fadeout(.35)
+		med_clip = VideoFileClip(media, audio=False).subclip(clip_start, clip_end).fadein(.35).fadeout(.35)
 
-		#compose text and video to create clip m
+		#compose text and video to create clip and put in list of completed clips
 		video_clip = CompositeVideoClip([med_clip, txt_clip])
-		#add completed clip to list of clips
 		med_clip_list[i] = video_clip
-		#index for clip list
 		i += 1
 
 	#concatenate all completed clips
+	audio = AudioFileClip(global_audio).set_duration(audio_length)
 	video = concatenate_videoclips(med_clip_list)
 
 	#Set audio for entire video
-	audioclip = AudioFileClip(global_audio)#.set_duration(audio_length, change_end=True)
-	video2 = video.set_audio(audioclip)
+	video2 = video.set_audio(audio)
 	#write out final video 
-	video2.write_videofile("knight_lab.mp4", fps=vid_fps, codec=vid_codec, audio=audio_bool)
+	video2.write_videofile(filename=file_name, fps=vid_fps, codec=vid_codec)
 
 
 compileVideo()
