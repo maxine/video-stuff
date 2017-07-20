@@ -145,18 +145,19 @@ def makeVideo(med, start, length):
 #print(makeVideo('video-example/example-media/kl_welcome.mp4', 0, 10))
 #Reads inputted media type and calls proper "make" function for type
 def makeMedia(med, start, length):
-	#imgPattern = ['.png', '.tiff', '.jpeg']
+	imgExt = ['.png', '.tiff', '.jpeg', '.jpg']
 	vidExt = ['.ogv', '.mp4', '.mpeg', '.avi', '.mov']
 
 	if '.gif' in med:
 		med_clip = makeGif(med, length)
 		return med_clip
-	if '.jpg' in med:
+	if any(ext in med for ext in imgExt):
 		med_clip = makeImage(med, length)
 		return med_clip
 	if any(ext in med for ext in vidExt):
 		med_clip = makeVideo(med, start, length)
 		return med_clip
+
 
 
 #Makes individual text, media, and audio clips and then stitches them into one video
