@@ -3,6 +3,7 @@ from moviepy.editor import *
 from ConfigParser import SafeConfigParser
 import struct
 import imghdr
+import re
 
 #Read configuration files
 parser = SafeConfigParser()
@@ -15,10 +16,8 @@ text_parser.read('fonts.ini')
 #txt_clip_list = [i for i in range(len(parser.sections()))]
 med_clip_list = [i for i in range(len(parser.sections()))]
 
-#Assigns user-specified font to a variable
-user_font = "Comic Sans" #currently hard coded; this is where we read in user input 
 
-#Defines text size based on video aspect ratio
+#NOT YET IMPLEMENTED. Will return desired text scale based on video aspect ratio
 def textSize():
 	tScale = "size"
 	aspect_ratio = parser.get('video0', 'aspect_ratio')
@@ -31,6 +30,8 @@ def textSize():
 		tScale = "small"
 	return tScale
 
+
+#NOT YET IMPLEMENTED. Will scale text size depending on aspect ratio
 def scaleFonts():
 	tSize = 0
 	if tScale == "small":
@@ -40,6 +41,7 @@ def scaleFonts():
 	if tScale == "large":
 		pass
 	return tSize
+
 
 #Finds length of all inputted media to determine global audio track duration
 def audioLength():
@@ -53,6 +55,9 @@ def audioLength():
 	return audio_duration
 
 
+#MAY BE DEPRECATED if we opt to use size in ComposeVideoClip.
+#Makes a still image with specified size and color to be stacked at the bottom of a composited
+#media clip as the "canvas" of the larger video composition. Ensures even sizing. 
 def videoSize():
 	aspect_ratio = parser.get('video0', 'aspect_ratio')
 	bkgd_color = parser.get('video0', 'background_color')
@@ -65,6 +70,8 @@ def videoSize():
 		bkgd = ColorClip((864, 1080), color=[30,43,23])
 	return bkgd
 
+
+#Returns a tuple of (width, height) of an image/gif. Doesn't work for videos.
 def get_image_size(fname):
 	'''Determine the image type of fhandle and return its size. from draco'''
 	with open(fname, 'rb') as fhandle:
@@ -99,6 +106,8 @@ def get_image_size(fname):
 			return
 		return width, height
 
+
+#Defines which axis to scale a picture/gif by.
 def scaleImage(a):
 	image_size = get_image_size(a)
 	x = image_size[0]
@@ -109,23 +118,46 @@ def scaleImage(a):
 	if (y > x) or (y == x):
 		return "vertical"
 
-def mediaType(med):
-	if ".gif" in  med:
-		makeGif()
-	if ".jpg" in med:
-		makeImage()
-	else:
-		makeVideo()
 
+#makes a gif clip
 def makeGif(med, length):
-	med_clip = VideoFileClip(media, audio=False).loop(duration = length)
+	med_clip = VideoFileClip(med, audio=False).loop(duration = length)
 	return med_clip
 
-def makeImage(med, length):
-	med_clip = ImageClip(media, duration = length)
 
+#makes an image clip
+def makeImage(med, length):
+	if scaleImage(med) == "horizontal":
+		med = ImageClip(med, duration = length)
+		med_clip = med.resize(width=1080)
+		return med_clip
+	if scaleImage(med) == "vertical":
+		med = ImageClip(med, duration = length)
+		med_clip = med.resize(height=720)
+		return med_clip
+
+
+#makes a video clip
 def makeVideo(med, start, length):
-	med_clip = VideoFileClip(media, audio=False).subclip(start, start+length).fadein(.35).fadeout(.35)
+	med_clip = VideoFileClip(med, audio=False).subclip(start, length).fadein(.35).fadeout(.35)
+	return med_clip
+
+#print(makeVideo('video-example/example-media/kl_welcome.mp4', 0, 10))
+#Reads inputted media type and calls proper "make" function for type
+def makeMedia(med, start, length):
+	imgPattern = ['.png', '.tiff', '.jpeg']
+	vidExt = ['.ogv', '.mp4', '.mpeg', '.avi', '.mov']
+
+	if '.gif' in  med:
+		med_clip = makeGif(med, length)
+	if any(ext in med for ext in imgExt):
+		med_clip = makeImage(med, length)
+	if any(ext in med for ext in vidExt):
+		med_clip = makeVideo(med, start, length)
+	else:
+		return
+	return med_clip
+
 
 #Makes individual text, media, and audio clips and then stitches them into one video
 def compileVideo():
@@ -139,10 +171,9 @@ def compileVideo():
 	tHighlight = parser.get('video0', 'text_highlight_color')
 	tSize = parser.getint('video0', 'text_size')
 	tBackground = parser.get('video0', 'text_background')
-	tFont = text_parser.get(user_font, 'text_font')
+	tFont = parser.get('video0', 'text_font')
 	#Audio
 	global_audio = parser.get('video0', 'video_audio')
-	#audio_bool = parser.getboolean('video0', 'audio_setting')
 	audio_length = audioLength()
 	#File
 	vid_fps = parser.getint('video0', 'frames_per_second')
@@ -152,9 +183,9 @@ def compileVideo():
 	for m in parser.sections():
 		#For each video, set all variables via configuration file
 		text = parser.get(m, 'clip_text')
-		media = parser.get(m, 'media_link')
 		tAlign = parser.get(m, 'text_align')
 		tPlace = parser.get(m, 'text_place')
+		media = parser.get(m, 'media_link')
 		clip_start = parser.getint(m, 'start_time')
 		clip_end = parser.getint(m, 'end_time')
 		text_duration = clip_end - clip_start
@@ -164,11 +195,8 @@ def compileVideo():
 		txt_clip = txt_clip.set_duration(text_duration).fadein(.35).fadeout(.35).set_position((tAlign,tPlace))		
 
 		#Make the video/background asset for slide m in the config file
-		if ".jpg" in media:
-			med_clip = ImageClip(media, duration=text_duration)
-		if any(e in media for e in (".mp4", ".mov")):
-			med_clip = VideoFileClip(media, audio=False).subclip(clip_start, clip_end).fadein(.35).fadeout(.35)
-			#bkgd = videoSize().set_duration(text_duration)
+		med_clip = makeMedia(media, clip_start, text_duration).set_position("center", "center")
+		#bkgd = videoSize().set_duration(text_duration)
 
 		#compose text and video to create clip and put in list of completed clips
 		video_clip = CompositeVideoClip([med_clip, txt_clip], size=(1080, 720))
@@ -180,10 +208,8 @@ def compileVideo():
 	video = concatenate_videoclips(med_clip_list)
 
 	#Set audio for entire video
-	video2 = video.set_audio(audio)
-	final_video = video
+	final_video = video.set_audio(audio)
 	#write out final video 
 	final_video.write_videofile(filename=file_name, fps=vid_fps, codec=vid_codec)
-
 
 compileVideo()
